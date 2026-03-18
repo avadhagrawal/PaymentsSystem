@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Payment Webhook API
+  description: API for processing payments and delivering webhooks reliably with retries.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /payments:
+    post:
+      summary: Create a payment
+      description: Creates a new payment and triggers webhook delivery.
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              sample:
+                value:
+                  amount: 100.50
+                  status: SUCCESS
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Invalid request payload
+        '500':
+          description: Internal server error
+
+  /webhooks:
+    post:
+      summary: Register webhook
+      description: Registers a new webhook URL to receive payment events.
+      operationId: registerWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              sample:
+                value:
+                  url: http://example.com/webhook
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '400':
+          description: Invalid webhook URL
+
+    get:
+      summary: List webhooks
+      description: Returns all active webhooks.
+      operationId: listWebhooks
+      responses:
+        '200':
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookResponse'
+
+  /deliveries:
+    get:
+      summary: Get webhook deliveries
+      description: Fetch delivery status of webhook attempts.
+      operationId: getDeliveries
+      responses:
+        '200':
+          description: List of webhook deliveries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookDeliveryResponse'
+
+components:
+  schemas:
+    PaymentRequest:
+      type: object
+      required:
+        - amount
+        - status
+      properties:
+        amount:
+          type: number
+          example: 100.50
+        status:
+          type: string
+          example: SUCCESS
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          example: 100.50
+        status:
+          type: string
+          example: SUCCESS
+
+    WebhookRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: http://example.com/webhook
+
+    WebhookResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        url:
+          type: string
+          example: http://example.com/webhook
+        active:
+          type: boolean
+          example: true
+
+    WebhookDeliveryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        webhookId:
+          type: integer
+        paymentId:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED, DEAD]
+        retryCount:
+          type: integer
+        lastAttempt:
+          type: string
+          format: date-time
