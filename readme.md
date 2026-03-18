@@ -45,9 +45,3 @@ Application will start at:
 ```
 http://localhost:8080
 ```
-
----
-
-## 📬 API Endpoints
-![]("C:\Users\HP\Downloads\Screenshot 2026-03-18 105948.png")
-![]("C:\Users\HP\Downloads\Screenshot 2026-03-18 105842.png")
